@@ -16,18 +16,13 @@
             background-color: var(--bg);
             color: #e0e0e0;
             font-family: 'serif', 'Noto Serif SC', 'Source Han Serif', serif;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* 动态背景层 */
-        #bg-layer {
+        #bg-glow {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, rgba(197,160,89,0.15) 0%, transparent 75%);
-            z-index: -1; 
-            transition: background-image 1.5s ease-in-out, opacity 1.5s;
-            background-size: cover;
-            background-position: center;
-            opacity: 1;
+            background: radial-gradient(circle at center, rgba(197,160,89,0.1) 0%, transparent 80%);
+            z-index: -1;
         }
 
         .container {
@@ -54,7 +49,6 @@
         #question-text {
             font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px;
             min-height: 80px; transition: opacity 0.4s;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
 
         .option-list { display: flex; flex-direction: column; gap: 12px; }
@@ -65,37 +59,42 @@
             text-align: left; cursor: pointer; transition: all 0.2s;
             backdrop-filter: blur(8px);
         }
-        .option-btn:active {
-            background: var(--gold); color: #000; border-color: var(--gold);
-        }
+        .option-btn:active { background: var(--gold); color: #000; border-color: var(--gold); }
 
+        /* 结果展示区 */
         #result-screen {
             display: none; text-align: center; height: 100%;
-            overflow-y: auto; padding-top: 40px;
+            overflow-y: auto; padding-top: 20px;
         }
+
+        /* 核心修改：结果图片展示框 */
+        #res-img-container {
+            width: 100%; margin-bottom: 20px;
+            border: 1px solid var(--gold);
+            overflow: hidden; background: #000;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.2);
+        }
+        #res-img {
+            width: 100%; display: block; 
+            transition: opacity 1s; opacity: 0;
+        }
+
         .role-title { 
-            font-size: 2.2rem; color: var(--gold); margin: 15px 0; 
-            letter-spacing: 4px; text-shadow: 0 0 15px rgba(0,0,0,1);
+            font-size: 1.8rem; color: var(--gold); margin: 10px 0; 
+            letter-spacing: 4px;
         }
         .drink-box {
             border: 1px solid var(--gold); padding: 20px;
-            margin: 25px 0; background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px);
+            margin: 20px 0; background: rgba(255,255,255,0.03);
         }
 
         .fade-in { animation: fadeIn 1s forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        @keyframes breath {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
     </style>
 </head>
 <body>
 
-<div id="bg-layer"></div>
+<div id="bg-glow"></div>
 
 <div class="container">
     <div id="game-ui">
@@ -107,14 +106,18 @@
     </div>
 
     <div id="result-screen" class="fade-in">
-        <p style="font-size: 0.8rem; letter-spacing: 2px; text-shadow: 0 2px 4px #000;">灵魂档案已固化</p>
+        <div id="res-img-container">
+            <img id="res-img" src="" alt="灵魂卡片" onerror="this.style.display='none'">
+        </div>
+        
+        <p style="font-size: 0.7rem; letter-spacing: 2px; color: #888;">灵魂档案已固化</p>
         <div class="role-title" id="res-role"></div>
-        <p id="res-analysis" style="font-size: 0.9rem; line-height: 1.8; color: #eee; text-align: justify; padding: 0 15px; text-shadow: 0 2px 4px #000;"></p>
+        <p id="res-analysis" style="font-size: 0.9rem; line-height: 1.8; color: #eee; text-align: justify; padding: 0 10px;"></p>
         
         <div class="drink-box">
             <p style="font-size: 0.7rem; margin-bottom: 10px; color: var(--gold);">以此相位开启契约</p>
             <h3 id="res-drink" style="margin: 5px 0; color: #fff; letter-spacing: 2px;"></h3>
-            <p id="res-drink-desc" style="font-size: 0.85rem; color: #ccc; margin-top: 10px; padding: 0 10px;"></p>
+            <p id="res-drink-desc" style="font-size: 0.85rem; color: #ccc; margin-top: 10px;"></p>
         </div>
         <button class="option-btn" onclick="location.reload()" style="text-align:center; width:100%; margin-bottom: 40px;">重新启动测定仪式</button>
     </div>
@@ -124,91 +127,41 @@
     const results = {
         pgm: {
             role: "PGM 契约者",
-            analysis: "你是现实主义的巫师。在你的世界里，灵性不是用来崇拜的，而是用来交易与博弈的。你擅长使用复杂的真名、咒语和物质媒介来强制扭转命运。这种对“效能”的追求，让你在交界地显得格外冷静而危险。",
+            analysis: "你是现实主义的巫师。在你的世界里，灵性不是用来崇拜的，而是用来交易与博弈的。你擅长使用复杂的真名、咒语和物质媒介来强制扭转命运。",
             drink: "赫卡忒之火 (Hekate's Fire)",
             desc: "深红风味，加入草本苦精与香料。口感厚重且带有强制性的回甘。"
         },
         classical: {
             role: "古典占星术师",
-            analysis: "你是宇宙秩序的观测者。你坚信万物皆在宏大的黄道运行中被标记好了位置。你的力量源于对逻辑、符号和对应关系的精准把握。在交界地，你是那个在混乱中建立坐标的指引者。",
+            analysis: "你是宇宙秩序的观测者。你坚信万物皆在宏大的黄道运行中被标记好了位置。你的力量源于对逻辑、符号和对应关系的精准把握。",
             drink: "水星秘药 (Mercury Elixir)",
             desc: "极度纯净的澄清液体，比例严丝合缝。清爽、理智且优雅。"
         },
         primal: {
             role: "上古萨满",
-            analysis: "你拒绝文明的矫饰，血液里流淌着荒野的咆哮。你通过本能直接与万物有灵的底层链接。不需要复杂的咒语，你的呼吸本身就是一种仪式，代表着从未被驯服的生命力。",
+            analysis: "你拒绝文明的矫饰，血液里流淌着荒野的咆哮。你通过本能直接与万物有灵的底层链接。不需要复杂的咒语，你的呼吸本身就是一种仪式。",
             drink: "余烬之息 (Ember's Breath)",
             desc: "泥煤味极重，带有明显的烟熏与大地气息。像森林深处的祭坛。"
         },
         chaos: {
             role: "混沌魔法师",
-            analysis: "你是最不可预测的变数。你认为信仰只是达成目的的临时工具，规则是可以随意重写的代码。你拥抱混乱，并在坍塌的逻辑中重构现实。你是观察者，也是系统漏洞本身。",
+            analysis: "你是最不可预测的变数。你认为信仰只是达成目的的临时工具，规则是可以随意重写的代码。你拥抱混乱，并在坍塌的逻辑中重构现实。",
             drink: "叠加态特调 (Superposition)",
             desc: "利用分子工艺打造，颜色与口感都在发生不可预知的变化。无法被定义。"
         }
     };
 
     const questions = [
-        { q: "步入『交界地』，最先唤醒你直觉的感官是：", options: [
-            { t: "古老羊皮纸摩擦的沙沙声", type: "pgm" },
-            { t: "远处星体运行般微弱的嗡鸣", type: "classical" },
-            { t: "泥土与腐殖质散发的潮湿气息", type: "primal" },
-            { t: "空气中逻辑崩坏的焦灼感", type: "chaos" }
-        ]},
-        { q: "面前有四种杯具，你会伸向哪一个？", options: [
-            { t: "刻满神名与诅咒的铅制重杯", type: "pgm" },
-            { t: "切割完美的剔透水晶杯", type: "classical" },
-            { t: "粗砺且带有裂纹的陶土杯", type: "primal" },
-            { t: "折射出金属光泽的实验杯", type: "chaos" }
-        ]},
-        { q: "改变现实的最核心动力来源于：", options: [
-            { t: "强制性的契约与真名呼唤", type: "pgm" },
-            { t: "行星位置与天时的精确配合", type: "classical" },
-            { t: "源于血液和祖先的原始野性", type: "primal" },
-            { t: "个人意志对现实碎片的重组", type: "chaos" }
-        ]},
-        { q: "遇到梦境守门人，你的通行策略是：", options: [
-            { t: "念诵其真名并出示契约", type: "pgm" },
-            { t: "出示代表自身职阶的印章", type: "classical" },
-            { t: "展现利爪让他感到威胁", type: "primal" },
-            { t: "告诉他守门人只是个幻觉", type: "chaos" }
-        ]},
-        { q: "你认为一杯真正的“秘药”应该是：", options: [
-            { t: "吞噬光线的深紫色", type: "pgm" },
-            { t: "纯净透明的琥珀色", type: "classical" },
-            { t: "充满生命力的鲜红色", type: "primal" },
-            { t: "变幻莫测的极光色", type: "chaos" }
-        ]},
-        { q: "若要达成心愿，你愿意支付：", options: [
-            { t: "七年的自由与侍奉契约", type: "pgm" },
-            { t: "长年累月的精密逻辑研究", type: "classical" },
-            { t: "自身的一部分鲜血或发肤", type: "primal" },
-            { t: "放弃对自己现有认知的执着", type: "chaos" }
-        ]},
-        { q: "你最希望拥有的使魔是：", options: [
-            { t: "缠绕在手臂上的双头蛇", type: "pgm" },
-            { t: "目光锐利的苍白猫头鹰", type: "classical" },
-            { t: "散发野兽气息的黑狼", type: "primal" },
-            { t: "形态不固定的发光几何体", type: "chaos" }
-        ]},
-        { q: "你如何看待所谓的“禁忌”？", options: [
-            { t: "禁忌只是风险更高的协议", type: "pgm" },
-            { t: "那是不可逾越的神圣边界", type: "classical" },
-            { t: "那是文明设立的虚假谎言", type: "primal" },
-            { t: "禁忌是发现真相的断裂点", type: "chaos" }
-        ]},
-        { q: "审判将至，你会带走的器物是：", options: [
-            { t: "我的真名咒语集", type: "pgm" },
-            { t: "我的精密黄道星盘", type: "classical" },
-            { t: "我的黑曜石猎刀", type: "primal" },
-            { t: "我的记忆硬盘", type: "chaos" }
-        ]},
-        { q: "最后请留下你对深渊的一句告白：", options: [
-            { t: "“我来，我见，我交易。”", type: "pgm" },
-            { t: "“万物皆数，和谐归一。”", type: "classical" },
-            { t: "“大地不灭，野性永存。”", type: "primal" },
-            { t: "“现实即谎言，意志即真理。”", type: "chaos" }
-        ]}
+        { q: "步入『交界地』，最先唤醒你直觉的感官是：", options: [{ t: "古老羊皮纸摩擦的沙沙声", type: "pgm" },{ t: "远处星体运行般微弱的嗡鸣", type: "classical" },{ t: "泥土与腐殖质散发的潮湿气息", type: "primal" },{ t: "空气中逻辑崩坏的焦灼感", type: "chaos" }]},
+        { q: "面前有四种杯具，你会伸向哪一个？", options: [{ t: "刻满神名与诅咒的铅制重杯", type: "pgm" },{ t: "切割完美的剔透水晶杯", type: "classical" },{ t: "粗砺且带有裂纹的陶土杯", type: "primal" },{ t: "折射出金属光泽的实验杯", type: "chaos" }]},
+        { q: "改变现实的最核心动力来源于：", options: [{ t: "强制性的契约与真名呼唤", type: "pgm" },{ t: "行星位置与天时的精确配合", type: "classical" },{ t: "源于血液和祖先的原始野性", type: "primal" },{ t: "个人意志对现实碎片的重组", type: "chaos" }]},
+        { q: "遇到梦境守门人，你的通行策略是：", options: [{ t: "念诵其真名并出示契约", type: "pgm" },{ t: "出示代表自身职阶的印章", type: "classical" },{ t: "展现利爪让他感到威胁", type: "primal" },{ t: "告诉他守门人只是个幻觉", type: "chaos" }]},
+        { q: "你认为一杯真正的“秘药”应该是：", options: [{ t: "吞噬光线的深紫色", type: "pgm" },{ t: "纯净透明的琥珀色", type: "classical" },{ t: "充满生命力的鲜红色", type: "primal" },{ t: "变幻莫测的极光色", type: "chaos" }]},
+        { q: "若要达成心愿，你愿意支付：", options: [{ t: "七年的自由与侍奉契约", type: "pgm" },{ t: "长年累月的精密逻辑研究", type: "classical" },{ t: "自身的一部分鲜血或发肤", type: "primal" },{ t: "放弃对自己现有认知的执着", type: "chaos" }]},
+        { q: "你最希望拥有的使魔是：", options: [{ t: "缠绕在手臂上的双头蛇", type: "pgm" },{ t: "目光锐利的苍白猫头鹰", type: "classical" },{ t: "散发野兽气息的黑狼", type: "primal" },{ t: "形态不固定的发光几何体", type: "chaos" }]},
+        { q: "你如何看待所谓的“禁忌”？", options: [{ t: "禁忌只是风险更高的协议", type: "pgm" },{ t: "那是不可逾越的神圣边界", type: "classical" },{ t: "那是文明设立的虚假谎言", type: "primal" },{ t: "禁忌是发现真相的断裂点", type: "chaos" }]},
+        { q: "审判将至，你会带走的器物是：", options: [{ t: "我的真名咒语集", type: "pgm" },{ t: "我的精密黄道星盘", type: "classical" },{ t: "我的黑曜石猎刀", type: "primal" },{ t: "我的记忆硬盘", type: "chaos" }]},
+        { q: "最后请留下你对深渊的一句告白：", options: [{ t: "“我来，我见，我交易。”", type: "pgm" },{ t: "“万物皆数，和谐归一。”", type: "classical" },{ t: "“大地不灭，野性永存。”", type: "primal" },{ t: "“现实即谎言，意志即真理。”", type: "chaos" }]}
     ];
 
     let step = 0;
@@ -247,15 +200,12 @@
         const winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
         const res = results[winner];
         
-        const bg = document.getElementById('bg-layer');
-        
-        // 关键修复：加入时间戳防止缓存破碎的旧图
+        // 设置结果图片地址并显示
+        const img = document.getElementById('res-img');
         const timestamp = new Date().getTime();
-        bg.style.backgroundImage = "url('" + winner + ".jpg?v=" + timestamp + "')"; 
-        
-        bg.style.opacity = '0.4';
-        bg.style.animation = 'breath 15s infinite ease-in-out';
-        
+        img.src = winner + ".jpg?v=" + timestamp;
+        img.onload = () => { img.style.opacity = 1; };
+
         document.getElementById('result-screen').style.display = 'block';
         document.getElementById('res-role').innerText = res.role;
         document.getElementById('res-analysis').innerText = res.analysis;
