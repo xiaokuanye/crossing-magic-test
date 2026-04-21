@@ -8,7 +8,7 @@
         :root {
             --gold: #c5a059;
             --bg: #0a0a0a;
-            --card-bg: rgba(0, 0, 0, 0.7);
+            --card-bg: rgba(255, 255, 255, 0.08);
         }
 
         body, html {
@@ -19,21 +19,15 @@
             overflow: hidden;
         }
 
-        /* 动态背景层 - 核心修正 */
-        #bg-image-layer {
+        /* 动态背景层 */
+        #bg-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, rgba(197,160,89,0.15) 0%, transparent 75%);
+            z-index: -1; 
+            transition: background-image 1.5s ease-in-out, opacity 1.5s;
             background-size: cover;
             background-position: center;
-            opacity: 0;
-            z-index: -1;
-            transition: opacity 2s ease;
-            filter: brightness(0.5) contrast(1.1) grayscale(10%);
-        }
-
-        #bg-glow {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, rgba(197,160,89,0.1) 0%, transparent 75%);
-            z-index: -2;
+            opacity: 1;
         }
 
         .container {
@@ -44,12 +38,12 @@
         }
 
         .progress-bar {
-            width: 100%; height: 2px; background: rgba(255,255,255,0.05);
-            margin-top: 20px;
+            width: 100%; height: 2px; background: rgba(255,255,255,0.1);
+            margin-top: 20px; position: relative;
         }
         #progress-fill {
             height: 100%; background: var(--gold); width: 0%;
-            transition: width 0.4s ease; box-shadow: 0 0 15px var(--gold);
+            transition: width 0.4s ease; box-shadow: 0 0 10px var(--gold);
         }
 
         #quiz-box {
@@ -58,19 +52,18 @@
         }
 
         #question-text {
-            font-size: 1.2rem; line-height: 1.8; margin-bottom: 40px;
-            text-shadow: 0 2px 10px rgba(0,0,0,1);
-            letter-spacing: 1px;
+            font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px;
+            min-height: 80px; transition: opacity 0.4s;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
 
         .option-list { display: flex; flex-direction: column; gap: 12px; }
         .option-btn {
             background: var(--card-bg);
             border: 1px solid rgba(197, 160, 89, 0.3);
-            color: #ccc; padding: 16px 20px; font-size: 0.9rem;
-            text-align: left; cursor: pointer; transition: all 0.3s;
-            backdrop-filter: blur(10px);
-            border-radius: 2px;
+            color: #ccc; padding: 16px; font-size: 0.95rem;
+            text-align: left; cursor: pointer; transition: all 0.2s;
+            backdrop-filter: blur(8px);
         }
         .option-btn:active {
             background: var(--gold); color: #000; border-color: var(--gold);
@@ -78,62 +71,83 @@
 
         #result-screen {
             display: none; text-align: center; height: 100%;
-            overflow-y: auto; padding: 40px 10px;
-            animation: fadeIn 2s forwards;
+            overflow-y: auto; padding-top: 40px;
         }
         .role-title { 
-            font-size: 2.2rem; color: var(--gold); margin: 20px 0; 
-            letter-spacing: 8px; text-shadow: 0 0 25px rgba(197,160,89,0.6);
-            font-weight: bold;
+            font-size: 2.2rem; color: var(--gold); margin: 15px 0; 
+            letter-spacing: 4px; text-shadow: 0 0 15px rgba(0,0,0,1);
         }
         .drink-box {
-            border: 1px solid var(--gold); padding: 25px 15px;
-            margin: 35px 0; background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(5px);
-            box-shadow: inset 0 0 20px rgba(197,160,89,0.1);
+            border: 1px solid var(--gold); padding: 20px;
+            margin: 25px 0; background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
         }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: fadeIn 1s forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* 呼吸动效 */
         @keyframes breath {
-            0% { transform: scale(1.0); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1.0); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
-
-        .fade-in { animation: fadeIn 0.6s ease-in; }
     </style>
 </head>
 <body>
 
-<div id="bg-glow"></div>
-<div id="bg-image-layer"></div>
+<div id="bg-layer"></div>
 
 <div class="container">
     <div id="game-ui">
         <div class="progress-bar"><div id="progress-fill"></div></div>
         <div id="quiz-box">
-            <div id="question-text">正在连接以太相位...</div>
+            <div id="question-text">正在开启交界地之门...</div>
             <div class="option-list" id="option-list"></div>
         </div>
     </div>
 
-    <div id="result-screen">
-        <p style="font-size: 0.75rem; letter-spacing: 5px; opacity: 0.6; margin-bottom: 0;">SOUL PHASE ALIGNMENT</p>
+    <div id="result-screen" class="fade-in">
+        <p style="font-size: 0.8rem; letter-spacing: 2px; text-shadow: 0 2px 4px #000;">灵魂档案已固化</p>
         <div class="role-title" id="res-role"></div>
-        <p id="res-analysis" style="font-size: 0.9rem; line-height: 2; color: #bbb; text-align: justify; margin: 25px auto; max-width: 90%;"></p>
+        <p id="res-analysis" style="font-size: 0.9rem; line-height: 1.8; color: #eee; text-align: justify; padding: 0 15px; text-shadow: 0 2px 4px #000;"></p>
         
         <div class="drink-box">
-            <p style="font-size: 0.7rem; margin-bottom: 15px; color: var(--gold); letter-spacing: 2px;">以此共振之名，向您进献：</p>
-            <h3 id="res-drink" style="margin: 10px 0; font-size: 1.5rem; letter-spacing: 1px;"></h3>
-            <p id="res-drink-desc" style="font-size: 0.85rem; color: #999; margin-top: 12px; line-height: 1.6;"></p>
+            <p style="font-size: 0.7rem; margin-bottom: 10px; color: var(--gold);">以此相位开启契约</p>
+            <h3 id="res-drink" style="margin: 5px 0; color: #fff; letter-spacing: 2px;"></h3>
+            <p id="res-drink-desc" style="font-size: 0.85rem; color: #ccc; margin-top: 10px; padding: 0 10px;"></p>
         </div>
-        <button class="option-btn" onclick="location.reload()" style="text-align:center; width:80%; margin: 20px auto; border-color: rgba(255,255,255,0.1);">重启仪式</button>
+        <button class="option-btn" onclick="location.reload()" style="text-align:center; width:100%; margin-bottom: 40px;">重新启动测定仪式</button>
     </div>
 </div>
 
 <script>
+    const results = {
+        pgm: {
+            role: "PGM 契约者",
+            analysis: "你是现实主义的巫师。在你的世界里，灵性不是用来崇拜的，而是用来交易与博弈的。你擅长使用复杂的真名、咒语和物质媒介来强制扭转命运。这种对“效能”的追求，让你在交界地显得格外冷静而危险。",
+            drink: "赫卡忒之火 (Hekate's Fire)",
+            desc: "深红风味，加入草本苦精与香料。口感厚重且带有强制性的回甘。"
+        },
+        classical: {
+            role: "古典占星术师",
+            analysis: "你是宇宙秩序的观测者。你坚信万物皆在宏大的黄道运行中被标记好了位置。你的力量源于对逻辑、符号和对应关系的精准把握。在交界地，你是那个在混乱中建立坐标的指引者。",
+            drink: "水星秘药 (Mercury Elixir)",
+            desc: "极度纯净的澄清液体，比例严丝合缝。清爽、理智且优雅。"
+        },
+        primal: {
+            role: "上古萨满",
+            analysis: "你拒绝文明的矫饰，血液里流淌着荒野的咆哮。你通过本能直接与万物有灵的底层链接。不需要复杂的咒语，你的呼吸本身就是一种仪式，代表着从未被驯服的生命力。",
+            drink: "余烬之息 (Ember's Breath)",
+            desc: "泥煤味极重，带有明显的烟熏与大地气息。像森林深处的祭坛。"
+        },
+        chaos: {
+            role: "混沌魔法师",
+            analysis: "你是最不可预测的变数。你认为信仰只是达成目的的临时工具，规则是可以随意重写的代码。你拥抱混乱，并在坍塌的逻辑中重构现实。你是观察者，也是系统漏洞本身。",
+            drink: "叠加态特调 (Superposition)",
+            desc: "利用分子工艺打造，颜色与口感都在发生不可预知的变化。无法被定义。"
+        }
+    };
+
     const questions = [
         { q: "步入『交界地』，最先唤醒你直觉的感官是：", options: [
             { t: "古老羊皮纸摩擦的沙沙声", type: "pgm" },
@@ -141,11 +155,11 @@
             { t: "泥土与腐殖质散发的潮湿气息", type: "primal" },
             { t: "空气中逻辑崩坏的焦灼感", type: "chaos" }
         ]},
-        { q: "面前有四种杯具，你的手会伸向哪一个？", options: [
+        { q: "面前有四种杯具，你会伸向哪一个？", options: [
             { t: "刻满神名与诅咒的铅制重杯", type: "pgm" },
             { t: "切割完美的剔透水晶杯", type: "classical" },
             { t: "粗砺且带有裂纹的陶土杯", type: "primal" },
-            { t: "折射出诡异金属光泽的实验杯", type: "chaos" }
+            { t: "折射出金属光泽的实验杯", type: "chaos" }
         ]},
         { q: "改变现实的最核心动力来源于：", options: [
             { t: "强制性的契约与真名呼唤", type: "pgm" },
@@ -171,17 +185,17 @@
             { t: "自身的一部分鲜血或发肤", type: "primal" },
             { t: "放弃对自己现有认知的执着", type: "chaos" }
         ]},
-        { q: "你最希望拥有的使魔形象是：", options: [
+        { q: "你最希望拥有的使魔是：", options: [
             { t: "缠绕在手臂上的双头蛇", type: "pgm" },
             { t: "目光锐利的苍白猫头鹰", type: "classical" },
             { t: "散发野兽气息的黑狼", type: "primal" },
             { t: "形态不固定的发光几何体", type: "chaos" }
         ]},
         { q: "你如何看待所谓的“禁忌”？", options: [
-            { t: "禁忌只是风险更高的操作协议", type: "pgm" },
+            { t: "禁忌只是风险更高的协议", type: "pgm" },
             { t: "那是不可逾越的神圣边界", type: "classical" },
             { t: "那是文明设立的虚假谎言", type: "primal" },
-            { t: "禁忌是发现真相的测试点", type: "chaos" }
+            { t: "禁忌是发现真相的断裂点", type: "chaos" }
         ]},
         { q: "审判将至，你会带走的器物是：", options: [
             { t: "我的真名咒语集", type: "pgm" },
@@ -197,33 +211,6 @@
         ]}
     ];
 
-    const results = {
-        pgm: {
-            role: "PGM 契约者",
-            analysis: "你是现实主义的巫师。在你的世界里，灵性不是用来崇拜的，而是用来交易与博弈的。你擅长使用复杂的真名、咒语和物质媒介来强制扭转命运。",
-            drink: "赫卡忒之火",
-            desc: "加入草本苦精与香料，口感厚重深邃，苦后回甘。"
-        },
-        classical: {
-            role: "古典占星术师",
-            analysis: "你是宇宙秩序的观测者。你坚信万物皆在宏大的黄道运行中被标记好了位置。你的力量源于对逻辑、符号和对应关系的精准把握。",
-            drink: "水星秘药",
-            desc: "比例严丝合缝，清爽、优雅、一如既往的理性之选。"
-        },
-        primal: {
-            role: "上古萨满",
-            analysis: "你拒绝文明的矫饰，血液里流淌着荒野的咆哮。你通过本能直接与万物有灵的底层链接。不需要咒语，你的存在本身就是仪式。",
-            drink: "余烬之息",
-            desc: "泥煤味威士忌配方，带有明显的烟熏与大地气息。"
-        },
-        chaos: {
-            role: "混沌魔法师",
-            analysis: "你是最不可预测的变数。你认为信仰只是达成目的的工具，规则是可以随意重写的代码。你在坍塌的逻辑中重构属于自己的现实。",
-            drink: "叠加态特调",
-            desc: "口感随光线与搅拌不断变化，只属于此刻的感官爆炸。"
-        }
-    };
-
     let step = 0;
     let scores = { pgm: 0, classical: 0, primal: 0, chaos: 0 };
 
@@ -236,7 +223,6 @@
         document.getElementById('progress-fill').style.width = ((step / questions.length) * 100) + "%";
         const qText = document.getElementById('question-text');
         qText.style.opacity = 0;
-        
         setTimeout(() => {
             qText.innerText = q.q;
             qText.style.opacity = 1;
@@ -253,7 +239,7 @@
                 };
                 list.appendChild(btn);
             });
-        }, 300);
+        }, 400);
     }
 
     function showResult() {
@@ -261,13 +247,14 @@
         const winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
         const res = results[winner];
         
-        // 核心修正：使用相对路径拼接
-        const bgLayer = document.getElementById('bg-image-layer');
-        const imgUrl = "./" + winner + ".jpg";
-        bgLayer.style.backgroundImage = "url('" + imgUrl + "')";
+        const bg = document.getElementById('bg-layer');
         
-        bgLayer.style.opacity = '0.5';
-        bgLayer.style.animation = 'breath 20s infinite ease-in-out';
+        // 关键修复：加入时间戳防止缓存破碎的旧图
+        const timestamp = new Date().getTime();
+        bg.style.backgroundImage = "url('" + winner + ".jpg?v=" + timestamp + "')"; 
+        
+        bg.style.opacity = '0.4';
+        bg.style.animation = 'breath 15s infinite ease-in-out';
         
         document.getElementById('result-screen').style.display = 'block';
         document.getElementById('res-role').innerText = res.role;
@@ -275,11 +262,7 @@
         document.getElementById('res-drink').innerText = res.drink;
         document.getElementById('res-drink-desc').innerText = res.desc;
     }
-
-    window.onload = () => {
-        setTimeout(loadStep, 500);
-    };
+    setTimeout(loadStep, 1000);
 </script>
-
 </body>
 </html>
