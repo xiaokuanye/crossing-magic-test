@@ -19,17 +19,21 @@
             overflow: hidden;
         }
 
-        /* 动态氛围背景 */
-        #bg-glow {
+        /* 动态背景层：支持颜色微光和最终图片 */
+        #bg-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, rgba(197,160,89,0.15) 0%, transparent 75%);
-            z-index: -1; transition: background 1.5s ease;
+            z-index: -1; 
+            transition: all 1.2s ease-in-out;
+            background-size: cover;
+            background-position: center;
         }
 
         .container {
             display: flex; flex-direction: column; height: 100%;
             max-width: 500px; margin: 0 auto; padding: 20px;
             box-sizing: border-box;
+            position: relative; z-index: 1;
         }
 
         /* 进度条 */
@@ -42,7 +46,6 @@
             transition: width 0.4s ease; box-shadow: 0 0 10px var(--gold);
         }
 
-        /* 题目展示区 */
         #quiz-box {
             flex: 1; display: flex; flex-direction: column; 
             justify-content: center; text-align: center;
@@ -51,16 +54,16 @@
         #question-text {
             font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px;
             min-height: 80px; transition: opacity 0.4s;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
 
-        /* 选项样式 */
         .option-list { display: flex; flex-direction: column; gap: 12px; }
         .option-btn {
             background: var(--card-bg);
             border: 1px solid rgba(197, 160, 89, 0.3);
             color: #ccc; padding: 16px; font-size: 0.95rem;
             text-align: left; cursor: pointer; transition: all 0.2s;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
         }
         .option-btn:active {
             background: var(--gold); color: #000; border-color: var(--gold);
@@ -71,19 +74,29 @@
             display: none; text-align: center; height: 100%;
             overflow-y: auto; padding-top: 40px;
         }
-        .role-title { font-size: 2.2rem; color: var(--gold); margin: 15px 0; letter-spacing: 4px; }
+        .role-title { 
+            font-size: 2.2rem; color: var(--gold); margin: 15px 0; 
+            letter-spacing: 4px; text-shadow: 0 0 15px rgba(0,0,0,1);
+        }
         .drink-box {
             border: 1px solid var(--gold); padding: 20px;
-            margin: 25px 0; background: rgba(255,255,255,0.02);
+            margin: 25px 0; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
         }
 
         .fade-in { animation: fadeIn 0.8s forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @keyframes breath {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
-<div id="bg-glow"></div>
+<div id="bg-layer"></div>
 
 <div class="container">
     <div id="game-ui">
@@ -95,16 +108,16 @@
     </div>
 
     <div id="result-screen" class="fade-in">
-        <p style="font-size: 0.8rem; letter-spacing: 2px;">灵魂档案已固化</p>
+        <p style="font-size: 0.8rem; letter-spacing: 2px; text-shadow: 0 2px 4px #000;">灵魂档案已固化</p>
         <div class="role-title" id="res-role"></div>
-        <p id="res-analysis" style="font-size: 0.9rem; line-height: 1.8; color: #bbb; text-align: justify;"></p>
+        <p id="res-analysis" style="font-size: 0.9rem; line-height: 1.8; color: #eee; text-align: justify; padding: 0 10px; text-shadow: 0 2px 4px #000;"></p>
         
         <div class="drink-box">
-            <p style="font-size: 0.7rem; margin-bottom: 10px; color: var(--gold);">本命秘药推荐</p>
-            <h3 id="res-drink" style="margin: 5px 0; color: #fff;"></h3>
-            <p id="res-drink-desc" style="font-size: 0.85rem; color: #aaa;"></p>
+            <p style="font-size: 0.7rem; margin-bottom: 10px; color: var(--gold);">以此相位开启契约</p>
+            <h3 id="res-drink" style="margin: 5px 0; color: #fff; letter-spacing: 2px;"></h3>
+            <p id="res-drink-desc" style="font-size: 0.85rem; color: #ccc; margin-top: 10px;"></p>
         </div>
-        <button class="option-btn" onclick="location.reload()" style="text-align:center; width:100%;">重新测定</button>
+        <button class="option-btn" onclick="location.reload()" style="text-align:center; width:100%; margin-bottom: 40px;">重新启动测定仪式</button>
     </div>
 </div>
 
@@ -162,7 +175,7 @@
             { t: "我的真名咒语集", type: "pgm" },
             { t: "我的精密黄道星盘", type: "classical" },
             { t: "我的黑曜石猎刀", type: "primal" },
-            { t: "我的空白意识硬盘", type: "chaos" }
+            { t: "我的记忆硬盘", type: "chaos" }
         ]},
         { q: "最后请留下你对深渊的一句告白：", options: [
             { t: "“我来，我见，我交易。”", type: "pgm" },
@@ -175,27 +188,27 @@
     const results = {
         pgm: {
             role: "PGM 契约者",
-            analysis: "你是现实主义的巫师。在你的世界里，灵性不是用来崇拜的，而是用来交易与博弈的。你擅长使用复杂的真名、咒语和物质媒介来强制扭转命运。",
-            drink: "赫卡忒之火",
-            desc: "深红风味，加入草本苦精与香料，复杂且带有强制性的回甘。"
+            analysis: "你是现实主义的巫师。在你的世界里，灵性不是用来崇拜的，而是用来交易与博弈的。你擅长使用复杂的真名、咒语和物质媒介来强制扭转命运。这种对“效能”的追求，让你在交界地显得格外冷静而危险。",
+            drink: "赫卡忒之火 (Hekate's Fire)",
+            desc: "深红风味，加入草本苦精与香料。口感厚重且带有强制性的回甘。"
         },
         classical: {
             role: "古典占星术师",
-            analysis: "你是宇宙秩序的观测者。你坚信万物皆在宏大的黄道运行中被标记好了位置。你的力量源于对逻辑、符号和对应关系的精准把握。",
-            drink: "水星秘药",
-            desc: "极度纯净的液体，比例严丝合缝，清爽、理智且优雅。"
+            analysis: "你是宇宙秩序的观测者。你坚信万物皆在宏大的黄道运行中被标记好了位置。你的力量源于对逻辑、符号和对应关系的精准把握。在交界地，你是那个在混乱中建立坐标的指引者。",
+            drink: "水星秘药 (Mercury Elixir)",
+            desc: "极度纯净的澄清液体，比例严丝合缝。清爽、理智且优雅。"
         },
         primal: {
             role: "上古萨满",
-            analysis: "你拒绝文明的矫饰，血液里流淌着荒野的咆哮。你通过本能直接与万物有灵的底层链接。你的呼吸本身就是一种仪式。",
-            drink: "余烬之息",
-            desc: "泥煤味极重，带有明显的烟熏与大地气息，像森林深处的祭坛。"
+            analysis: "你拒绝文明的矫饰，血液里流淌着荒野的咆哮。你通过本能直接与万物有灵的底层链接。不需要复杂的咒语，你的呼吸本身就是一种仪式，代表着从未被驯服的生命力。",
+            drink: "余烬之息 (Ember's Breath)",
+            desc: "泥煤味极重，带有明显的烟熏与大地气息。像森林深处的祭坛。"
         },
         chaos: {
             role: "混沌魔法师",
-            analysis: "你是最不可预测的变数。你认为信仰只是达成目的的临时工具，规则是可以随意重写的代码。你在坍塌的逻辑中重构现实。",
-            drink: "叠加态特调",
-            desc: "分子工艺打造，颜色与口感都在发生不可预知的变化，无法被定义。"
+            analysis: "你是最不可预测的变数。你认为信仰只是达成目的的临时工具，规则是可以随意重写的代码。你拥抱混乱，并在坍塌的逻辑中重构现实。你是观察者，也是系统漏洞本身。",
+            drink: "叠加态特调 (Superposition)",
+            desc: "利用分子工艺打造，颜色与口感都在发生不可预知的变化。无法被定义。"
         }
     };
 
@@ -210,30 +223,43 @@
 
         const q = questions[step];
         document.getElementById('progress-fill').style.width = ((step / questions.length) * 100) + "%";
-        document.getElementById('question-text').innerText = q.q;
         
-        const list = document.getElementById('option-list');
-        list.innerHTML = '';
-        q.options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn fade-in';
-            btn.innerText = opt.t;
-            btn.onclick = () => {
-                scores[opt.type]++;
-                step++;
-                // 改变背景微光颜色
-                const colors = { pgm: 'rgba(74,20,140,0.2)', classical: 'rgba(13,71,161,0.2)', primal: 'rgba(27,94,32,0.2)', chaos: 'rgba(183,28,28,0.2)' };
-                document.getElementById('bg-glow').style.background = `radial-gradient(circle at center, ${colors[opt.type]} 0%, transparent 75%)`;
-                loadStep();
-            };
-            list.appendChild(btn);
-        });
+        const qText = document.getElementById('question-text');
+        qText.style.opacity = 0;
+        
+        setTimeout(() => {
+            qText.innerText = q.q;
+            qText.style.opacity = 1;
+            
+            const list = document.getElementById('option-list');
+            list.innerHTML = '';
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn fade-in';
+                btn.innerText = opt.t;
+                btn.onclick = () => {
+                    scores[opt.type]++;
+                    step++;
+                    // 改变背景微光暗示流派选择
+                    const colors = { pgm: 'rgba(74,20,140,0.2)', classical: 'rgba(13,71,161,0.2)', primal: 'rgba(27,94,32,0.2)', chaos: 'rgba(183,28,28,0.2)' };
+                    document.getElementById('bg-layer').style.background = `radial-gradient(circle at center, ${colors[opt.type]} 0%, #0a0a0a 100%)`;
+                    loadStep();
+                };
+                list.appendChild(btn);
+            });
+        }, 400);
     }
 
     function showResult() {
         document.getElementById('game-ui').style.display = 'none';
         const winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
         const res = results[winner];
+        
+        // 替换最终背景图并增加呼吸动画
+        const bg = document.getElementById('bg-layer');
+        bg.style.backgroundImage = `url('${winner}.jpg')`; 
+        bg.style.opacity = '0.4';
+        bg.style.animation = 'breath 15s infinite ease-in-out';
         
         document.getElementById('result-screen').style.display = 'block';
         document.getElementById('res-role').innerText = res.role;
@@ -242,7 +268,6 @@
         document.getElementById('res-drink-desc').innerText = res.desc;
     }
 
-    // 延迟一秒开启，增加仪式感
     setTimeout(loadStep, 1000);
 </script>
 
